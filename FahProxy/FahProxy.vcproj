@@ -204,6 +204,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FahUploadProxyHandler.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\MainForm.cpp"
 				>
 			</File>
@@ -220,7 +224,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Uploader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\UploadManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Utils.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\WorkUnit.cpp"
 				>
 			</File>
 		</Filter>
@@ -229,6 +245,14 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\FahProxy.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FahUploadProxyHandler.h"
+				>
+			</File>
 			<File
 				RelativePath=".\MainForm.h"
 				FileType="3"
@@ -256,7 +280,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Uploader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\UploadManager.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Utils.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WorkUnit.h"
 				>
 			</File>
 		</Filter>

@@ -8,9 +8,10 @@ using namespace System::Net::Sockets;
 using namespace System::Text;
 using namespace System;
 
-NormalProxyHandler::NormalProxyHandler(System::String^ method, System::String^ url, System::String^ protocolVersion, System::Net::Sockets::NetworkStream^ ns)
+NormalProxyHandler::NormalProxyHandler(System::String^ method, System::String^ url, System::String^ protocolVersion, System::Net::Sockets::NetworkStream^ ns, System::IO::MemoryStream^ headers)
 {
 	m_requestMethod = method;
+	m_headersStream = headers;
 	if (m_requestMethod == "CONNECT")
 	{
 		array<wchar_t>^ splitChars = {':'};
@@ -30,6 +31,12 @@ NormalProxyHandler::NormalProxyHandler(System::String^ method, System::String^ u
 	m_protocolVersion = protocolVersion;
 	m_proxyStream = ns;
 	m_buffer = gcnew array<unsigned char, 1>(BUFFER_LENGTH);
+
+	System::Random^ r = gcnew System::Random();
+#ifdef _DEBUG
+	System::String^ traceFilename = String::Concat("proxytrace-", System::Convert::ToString(r->Next()), ".txt");
+	m_traceStream = gcnew System::IO::FileStream(traceFilename, FileMode::Create);
+#endif
 }
 
 NormalProxyHandler::~NormalProxyHandler()
@@ -86,18 +93,30 @@ void NormalProxyHandler::HandleIt()
 	catch (System::Net::Sockets::SocketException^) {}
 	finally
 	{
-		m_requestStream->Close();
-		webRequestSocket->Close();
+		if (m_requestStream)
+		{
+			m_requestStream->Close();
+		}
+		if (webRequestSocket)
+		{
+			webRequestSocket->Close();
+		}
+		
+		if (m_traceStream)
+		{
+			m_traceStream->Close();
+		}
 	}
 }
 
 void NormalProxyHandler::PassThroughRequestHeaders()
 {
+	m_headersStream->Seek(0, SeekOrigin::Begin);
 	for
 	(
-		String^ line = Utils::ReadLineFromStream(m_proxyStream);
+		String^ line = Utils::ReadLineFromStream(m_headersStream);
 		line != "";
-		line = Utils::ReadLineFromStream(m_proxyStream)
+		line = Utils::ReadLineFromStream(m_headersStream)
 	)
 	{
 		Utils::WriteLineToStream(m_requestStream, line);
@@ -114,21 +133,7 @@ void NormalProxyHandler::PassThroughRequestHeaders()
 
 void NormalProxyHandler::PassThroughRequestContent()
 {
-	for
-	(
-		int bytesRead = 0;
-		(m_requestContentLength == 0 || bytesRead < m_requestContentLength);
-	)
-	{
-		int b = m_proxyStream->Read(m_buffer, 0, BUFFER_LENGTH);
-		if (b == 0)
-		{
-			break;
-		}
-		bytesRead += b;
-		m_requestStream->Write(m_buffer, 0, b);
-	}
-	m_requestStream->Flush();
+	CopyBytes(m_proxyStream, m_requestStream, m_requestContentLength);
 }
 
 void NormalProxyHandler::PassThroughResponseHeaders()
@@ -154,22 +159,7 @@ void NormalProxyHandler::PassThroughResponseHeaders()
 
 void NormalProxyHandler::PassThroughResponseContent()
 {
-	// Pass through data
-	for
-	(
-		int bytesRead = 0;
-		(m_contentLength == 0 || bytesRead < m_contentLength);
-	)
-	{
-		int b = m_requestStream->Read(m_buffer, 0, BUFFER_LENGTH);
-		if (b == 0)
-		{
-			break;
-		}
-		bytesRead += b;
-		m_proxyStream->Write(m_buffer, 0, b);
-	}
-	m_proxyStream->Flush();
+	CopyBytes(m_requestStream, m_proxyStream, m_contentLength);
 }
 
 void NormalProxyHandler::PassThroughEverything()
@@ -200,3 +190,44 @@ void NormalProxyHandler::PassThroughEverything()
 		}
 	}
 }
+
+void NormalProxyHandler::CopyBytes(System::IO::Stream^ stream1, System::IO::Stream^ stream2, int contentLength)
+{
+	// Pass through data
+	for
+	(
+		int bytesRead = 0;
+		(contentLength == 0 || bytesRead < contentLength);
+	)
+	{
+		int b = stream1->Read(m_buffer, 0, BUFFER_LENGTH);
+		if (b == 0)
+		{
+			break;
+		}
+		bytesRead += b;
+		stream2->Write(m_buffer, 0, b);
+	}
+	stream2->Flush();
+}
+
+void NormalProxyHandler::WriteTrace(System::String^ line)
+{
+#ifdef _DEBUG
+	if (m_traceStream)
+	{
+		Utils::WriteLineToStream(m_traceStream, line);
+	}
+#endif
+}
+
+void NormalProxyHandler::WriteTrace(array<unsigned char,1>^ buffer, int index, int count)
+{
+#ifdef _DEBUG
+	if (m_traceStream)
+	{
+		m_traceStream->Write(buffer, index, count);
+	}
+#endif
+}
+

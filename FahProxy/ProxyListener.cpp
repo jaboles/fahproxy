@@ -37,7 +37,11 @@ void ProxyListener::ThreadEntry()
 	while (true)
 	{
 		Socket^ s = m_listenSocket->Accept();
+
 		ProxyHandlerArbitrator^ a = gcnew ProxyHandlerArbitrator(s);
-		a->HandleIt();
+
+		ThreadStart^ ts = gcnew ThreadStart(a, &ProxyHandlerArbitrator::HandleIt);
+		Thread^ t = gcnew Thread(ts);
+		t->Start();
 	}
 }
