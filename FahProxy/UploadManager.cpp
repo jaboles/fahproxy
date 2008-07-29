@@ -57,6 +57,7 @@ bool UploadQueueEntry::FailedRecently(int seconds)
 UploadManager::UploadManager(MainForm^ mainForm)
 {
 	m_mainForm = mainForm;
+	m_running = true;
 	m_uploadQueue = gcnew Queue();
 	m_uploaders = gcnew ArrayList();
 	m_masterList = gcnew ArrayList();
@@ -99,23 +100,32 @@ void UploadManager::AddToQueue(WorkUnit^ wu)
 	m_masterList->Add(qe);
 	Monitor::Exit(m_uploadQueue);
 
-	m_mainForm->AddQueueItem
-	(
-		0,
-		wu->GetTime().ToString(),
-		wu->GetDataSize(),
-		wu->GetUsername(),
-		wu->GetTeam(),
-		wu->GetUserId(),
-		wu->GetMachineId(),
-		String::Concat(wu->GetUploadHost(), ":", Convert::ToString(wu->GetUploadPort())),
-		qe->GetStatus()
-	);
+	//if (m_mainForm && m_mainForm->Visible)
+	{
+		m_mainForm->AddQueueItem
+		(
+			0,
+			wu->GetTime().ToString(),
+			wu->GetHostReceivedFrom(),
+			wu->GetDataSize(),
+			wu->GetUsername(),
+			wu->GetTeam(),
+			wu->GetUserId(),
+			wu->GetMachineId(),
+			String::Concat(wu->GetUploadHost(), ":", Convert::ToString(wu->GetUploadPort())),
+			qe->GetStatus()
+		);
+	}
+}
+
+void UploadManager::Stop()
+{
+	m_running = false;
 }
 
 void UploadManager::UploadDispatchThread()
 {
-	while (true)
+	while (m_running)
 	{
 		System::Threading::Thread::Sleep(1000);
 
@@ -124,7 +134,7 @@ void UploadManager::UploadDispatchThread()
 			Uploader^ u = static_cast<Uploader^>(m_uploaders[i]);
 
 			Monitor::Enter(m_uploadQueue);
-			if (m_uploadQueue->Count > 0 && !u->IsActive() && !static_cast<UploadQueueEntry^>(m_uploadQueue->Peek())->FailedRecently(30))
+			if (m_uploadQueue->Count > 0 && !u->IsActive() && !static_cast<UploadQueueEntry^>(m_uploadQueue->Peek())->FailedRecently(120))
 			{
 				UploadQueueEntry^ qe = static_cast<UploadQueueEntry^>(m_uploadQueue->Dequeue());
 				String^ s = qe->GetWorkUnit()->GetUploadHost();
@@ -140,10 +150,12 @@ void UploadManager::UploadFinished(System::Object^ sender, System::EventArgs^ e)
 	Uploader^ u = static_cast<Uploader^>(sender);
 	UploadQueueEntry^ qe = u->GetCurrentQueueEntry();
 
+	qe->GetWorkUnit()->CleanUpFile();
+
 	// Find the queue entry in the master list.
 	for (int i = 0; i < m_masterList->Count; i++)
 	{
-		if (static_cast<UploadQueueEntry^>(m_masterList[i]) == qe)
+		if (static_cast<UploadQueueEntry^>(m_masterList[i]) == qe/* && m_mainForm && m_mainForm->Visible*/)
 		{
 			m_mainForm->UpdateQueueItemStatus(i, qe->GetStatus(), u->GetProgress(), qe->GetErrorString());
 		}
@@ -163,7 +175,7 @@ void UploadManager::UploadFailed(System::Object^ sender, System::EventArgs^ e)
 	// Find the queue entry in the master list.
 	for (int i = 0; i < m_masterList->Count; i++)
 	{
-		if (static_cast<UploadQueueEntry^>(m_masterList[i]) == qe)
+		if (static_cast<UploadQueueEntry^>(m_masterList[i]) == qe/* && m_mainForm && m_mainForm->Visible*/)
 		{
 			m_mainForm->UpdateQueueItemStatus(i, qe->GetStatus(), u->GetProgress(), qe->GetErrorString());
 		}
@@ -178,7 +190,7 @@ void UploadManager::ProgressChanged(System::Object^ sender, System::EventArgs^ e
 	// Find the queue entry in the master list.
 	for (int i = 0; i < m_masterList->Count; i++)
 	{
-		if (static_cast<UploadQueueEntry^>(m_masterList[i]) == qe)
+		if (static_cast<UploadQueueEntry^>(m_masterList[i]) == qe/* && m_mainForm && m_mainForm->Visible*/)
 		{
 			m_mainForm->UpdateQueueItemStatus(i, qe->GetStatus(), u->GetProgress(), qe->GetErrorString());
 		}

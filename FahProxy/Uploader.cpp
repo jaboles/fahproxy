@@ -48,20 +48,20 @@ void Uploader::UploadThreadEntry()
 		Utils::WriteLineToStream(m_networkStream, "POST / HTTP/1.1");
 		Utils::WriteLineToStream(m_networkStream, String::Format("Host: {0}:{1}", m_currentUpload->GetWorkUnit()->GetUploadHost(), m_currentUpload->GetWorkUnit()->GetUploadPort()));
 		Utils::WriteLineToStream(m_networkStream, "Connection: Keep-Alive");
-		Utils::WriteLineToStream(m_networkStream, String::Format("Content-Length: {0}", 5));
+		Utils::WriteLineToStream(m_networkStream, String::Format("Content-Length: {0}", m_currentUpload->GetWorkUnit()->GetDataSize()));
 		Utils::WriteLineToStream(m_networkStream, "");
 		m_networkStream->Flush();
 
-		for (m_bytesUploaded = 0; m_bytesUploaded < 5;)
+		for (m_bytesUploaded = 0; m_bytesUploaded < m_currentUpload->GetWorkUnit()->GetDataSize();)
 		{
-			//int b = wuDataStream->Read(m_buffer, 0, BUFFER_SIZE);
-			int b = 1;
+			int b = wuDataStream->Read(m_buffer, 0, BUFFER_SIZE);
 			m_bytesUploaded += b;
-			m_networkStream->WriteByte(15);
-			//m_networkStream->Write(m_buffer, 0, b);
-			//ProgressChanged(this, System::EventArgs::Empty);
+			//m_networkStream->WriteByte(15);
+			m_networkStream->Write(m_buffer, 0, b);
+			ProgressChanged(this, System::EventArgs::Empty);
 		}
 		m_networkStream->Flush();
+		wuDataStream->Close();
 
 		array<unsigned char, 1>^ receiptBuffer = gcnew array<unsigned char, 1>(512);
 		int responseContentLength = 0;
@@ -82,36 +82,40 @@ void Uploader::UploadThreadEntry()
 				httpResponseCode = Convert::ToInt32(line->Substring(9, 3));
 				httpResponseLine = line->Substring(9);
 			}
-			if (line->StartsWith("Content-Length:"))
+
+			// Stanford server doesn't specify content-length in the response.
+			/*if (line->StartsWith("Content-Length:"))
 			{
 				responseContentLength = Convert::ToInt32(line->Substring(16));
-			}
+			}*/
 		}
 
 		if (httpResponseCode == 200)
 		{
-			if (responseContentLength > 0)
+			//if (responseContentLength > 0)
 			{
 				line1 = Utils::ReadLineFromStream(m_networkStream);
 				responseContentLength -= (line1->Length + 2);
 			}
-			if (responseContentLength > 0)
+			//if (responseContentLength > 0)
 			{
 				// Read the 512-byte receipt
 				m_networkStream->Read(receiptBuffer, 0, 512);
+				responseContentLength -= 512;
 			}
-			if (responseContentLength > 0)
+			//if (responseContentLength > 0)
 			{
 				line2 = Utils::ReadLineFromStream(m_networkStream);
 				responseContentLength -= (line2->Length + 2);
 			}
-			if (responseContentLength > 0)
+			//if (responseContentLength > 0)
 			{
-				line1 = Utils::ReadLineFromStream(m_networkStream);
+				line3 = Utils::ReadLineFromStream(m_networkStream);
 				responseContentLength -= (line3->Length + 2);
 			}
 
 			m_currentUpload->SetStatus(UploadQueueEntry::UPLOAD_COMPLETED);
+			m_currentUpload->GetWorkUnit()->WriteReceipt(receiptBuffer);
 			UploadComplete(this, System::EventArgs::Empty);	
 		}
 		else
@@ -131,7 +135,10 @@ void Uploader::UploadThreadEntry()
 	{
 		//ProgressChanged(this, System::EventArgs::Empty);
 
-		wuDataStream->Close();
+		if (wuDataStream)
+		{
+			wuDataStream->Close();
+		}
 
 		if (m_networkStream)
 		{

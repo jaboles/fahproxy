@@ -1,18 +1,21 @@
 #include "ProxyHandlerArbitrator.h"
 #include "NormalProxyHandler.h"
 #include "FahUploadProxyHandler.h"
+#include "UploadManager.h"
+#include "Utils.h"
 
 using namespace FahProxy;
 using namespace System::Net::Sockets;
+using namespace System::Net;
 using namespace System::IO;
-#include "Utils.h"
 
 using namespace System;
 
-ProxyHandlerArbitrator::ProxyHandlerArbitrator(Socket^ clientSocket)
+ProxyHandlerArbitrator::ProxyHandlerArbitrator(Socket^ clientSocket, UploadManager^ uploadManager)
 {
 	m_clientSocket = clientSocket;
 	m_networkStream = gcnew NetworkStream(m_clientSocket);
+	m_uploadManager = uploadManager;
 }
 
 ProxyHandlerArbitrator::~ProxyHandlerArbitrator()
@@ -50,6 +53,7 @@ void ProxyHandlerArbitrator::HandleIt()
 		Utils::WriteLineToStream(headers, "");
 
 		NormalProxyHandler^ h;
+		String^ localHost = static_cast<IPEndPoint^>(m_clientSocket->RemoteEndPoint)->Address->ToString();
 		if
 		(
 			method == "POST" && contentLength > 2048 && 
@@ -63,11 +67,11 @@ void ProxyHandlerArbitrator::HandleIt()
 			)
 		)
 		{
-			h = gcnew FahUploadProxyHandler(method, url, protocol, m_networkStream, headers);
+			h = gcnew FahUploadProxyHandler(localHost, method, url, protocol, m_networkStream, headers, m_uploadManager);
 		}
 		else
 		{
-			h = gcnew NormalProxyHandler(method, url, protocol, m_networkStream, headers);
+			h = gcnew NormalProxyHandler(localHost, method, url, protocol, m_networkStream, headers);
 		}
 		h->HandleIt();
 	}

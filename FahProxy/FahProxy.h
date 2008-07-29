@@ -11,6 +11,8 @@ namespace FahProxy
 		FoldingAtHomeProxy();
 		~FoldingAtHomeProxy();
 
+		static const System::String^ VERSION = "0.01.000";
+
 	protected:
 		ProxyListener^ m_proxyListener;
 		UploadManager^ m_uploadManager;

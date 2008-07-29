@@ -8,10 +8,11 @@ using namespace System::Net::Sockets;
 using namespace System::Text;
 using namespace System;
 
-NormalProxyHandler::NormalProxyHandler(System::String^ method, System::String^ url, System::String^ protocolVersion, System::Net::Sockets::NetworkStream^ ns, System::IO::MemoryStream^ headers)
+NormalProxyHandler::NormalProxyHandler(System::String^ localHost, System::String^ method, System::String^ url, System::String^ protocolVersion, System::Net::Sockets::NetworkStream^ ns, System::IO::MemoryStream^ headers)
 {
 	m_requestMethod = method;
 	m_headersStream = headers;
+	m_localHost = localHost;
 	if (m_requestMethod == "CONNECT")
 	{
 		array<wchar_t>^ splitChars = {':'};

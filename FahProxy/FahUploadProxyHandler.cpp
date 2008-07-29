@@ -1,14 +1,17 @@
 #include "FahUploadProxyHandler.h"
 #include "Utils.h"
 #include "WorkUnit.h"
+#include "UploadManager.h"
 
 using namespace FahProxy;
 using namespace System;
 using namespace System::IO;
+using namespace System::Net;
 
-FahUploadProxyHandler::FahUploadProxyHandler(System::String^ method, System::String^ url, System::String^ protocolVersion, System::Net::Sockets::NetworkStream^ ns, System::IO::MemoryStream^ headers)
-: NormalProxyHandler(method, url, protocolVersion, ns, headers)
+FahUploadProxyHandler::FahUploadProxyHandler(System::String^ localHost, System::String^ method, System::String^ url, System::String^ protocolVersion, System::Net::Sockets::NetworkStream^ ns, System::IO::MemoryStream^ headers, UploadManager^ uploadManager)
+: NormalProxyHandler(localHost, method, url, protocolVersion, ns, headers)
 {
+	m_uploadManager = uploadManager;
 }
 
 void FahUploadProxyHandler::HandleIt()
@@ -31,7 +34,7 @@ void FahUploadProxyHandler::HandleIt()
 
 		Utils::WriteLineToStream(m_metadataStream, m_host);
 		Utils::WriteLineToStream(m_metadataStream, Convert::ToString(m_port));
-		//Utils::WriteLineToStream(m_metadataStream, m_proxyStream->Socket->RemoteEndPoint->ToString());
+		Utils::WriteLineToStream(m_metadataStream, m_localHost);
 		m_metadataStream->Close();
 
 		// Discard the request headers (we don't need them)
@@ -71,8 +74,7 @@ void FahUploadProxyHandler::HandleIt()
 		Utils::WriteLineToStream(m_proxyStream, "0");
 		Utils::WriteLineToStream(m_proxyStream, "");
 
-		
-
+		m_uploadManager->AddToQueue(wu);
 	}
 	catch (System::IO::IOException^) {}
 	catch (System::Net::Sockets::SocketException^) {}

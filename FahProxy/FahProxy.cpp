@@ -21,14 +21,19 @@ int main(array<System::String ^> ^args)
 
 FoldingAtHomeProxy::FoldingAtHomeProxy()
 {
-	m_proxyListener = gcnew ProxyListener(8080);
-	m_proxyListener->Start();
-
 	MainForm^ mainForm = gcnew MainForm();
+
 
 	m_uploadManager = gcnew UploadManager(mainForm);
 
+	m_proxyListener = gcnew ProxyListener(m_uploadManager, 8080);
+	m_proxyListener->Start();
+
+
 	Application::Run(mainForm);
+
+	m_proxyListener->Stop();
+	m_uploadManager->Stop();
 }
 
 FoldingAtHomeProxy::~FoldingAtHomeProxy()

@@ -5,7 +5,7 @@ namespace FahProxy
 	public ref class NormalProxyHandler
 	{
 	public:
-		NormalProxyHandler(System::String^ method, System::String^ url, System::String^ protocolVersion, System::Net::Sockets::NetworkStream^ ns, System::IO::MemoryStream^ headers);
+		NormalProxyHandler(System::String^ localHost, System::String^ method, System::String^ url, System::String^ protocolVersion, System::Net::Sockets::NetworkStream^ ns, System::IO::MemoryStream^ headers);
 		~NormalProxyHandler();
 		virtual void HandleIt();
 	protected:
@@ -21,6 +21,7 @@ namespace FahProxy
 		System::String^ m_requestMethod;
 		System::String^ m_protocolVersion;
 		System::String^ m_host;
+		System::String^ m_localHost;
 		System::IO::MemoryStream^ m_headersStream;
 		int m_port;
 		System::String^ m_path;

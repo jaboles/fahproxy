@@ -33,6 +33,7 @@ namespace FahProxy
 		UploadManager(MainForm^ mainForm);
 		~UploadManager();
 		void AddToQueue(WorkUnit^ wu);
+		void Stop();
 
 		static const int m_simultaneousUploads = 1;
 
@@ -47,5 +48,6 @@ namespace FahProxy
 		System::Collections::Queue^ m_uploadQueue;
 		System::Collections::ArrayList^ m_uploaders;
 		MainForm^ m_mainForm;
+		bool m_running;
 	};
 }

@@ -25,6 +25,7 @@ WorkUnit::WorkUnit(String^ filename)
 	fs = gcnew FileStream(String::Concat(m_path, ".txt"), FileMode::Open, FileAccess::Read);
 	m_uploadHost = Utils::ReadLineFromStream(fs);
 	m_uploadPort = Convert::ToInt32(Utils::ReadLineFromStream(fs));
+	m_hostReceivedFrom = Utils::ReadLineFromStream(fs);
 	fs->Close();
 
 }
@@ -43,9 +44,25 @@ int WorkUnit::GetDataSize()
 	return m_wuDataSize;
 }
 
+System::String^ WorkUnit::GetHostReceivedFrom()
+{
+	return m_hostReceivedFrom;
+}
+
 System::String^ WorkUnit::GetUserId()
 {
-	return System::Text::Encoding::ASCII->GetString(m_info, 288, 8);
+	array<int,1>^ a = gcnew array<int,1>(8);
+	Array::Copy(m_info, 288, a, 0, 8);
+
+	__int64 userId = 0;
+	for (int i = 0; i < 8; i++)
+	{
+		userId += ((__int64)a[i] << ((7-i) * 8));
+	}
+
+	userId -= GetMachineId();
+
+	return userId.ToString("X");
 }
 
 String^ WorkUnit::GetUsername()
@@ -171,4 +188,24 @@ System::IO::Stream^ WorkUnit::GetTranslatedResponseStream()
 	// There. that should be 512 bytes.
 	ms->Seek(0, SeekOrigin::Begin);
 	return ms;
+}
+
+void WorkUnit::WriteReceipt(array<unsigned char,1>^ receiptBuffer)
+{
+	Stream^ f = gcnew FileStream(String::Concat(m_path, ".receipt"), FileMode::Create);
+	f->Write(receiptBuffer, 0, 512);
+	f->Close();
+}
+
+void WorkUnit::CleanUpFile()
+{
+	try
+	{
+		File::Delete(String::Concat(m_path, ".wu"));
+		File::Delete(String::Concat(m_path, ".txt"));
+	}
+	catch (System::IO::IOException^)
+	{
+		// Ignore.
+	}
 }
