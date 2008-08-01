@@ -59,7 +59,7 @@ void ProxyHandlerArbitrator::HandleIt()
 			method == "POST" && contentLength > 2048 && 
 			(
 				url->StartsWith("http://171.64.") &&
-				url->EndsWith(":8080/")
+				(url->EndsWith(":8080/") || url->EndsWith(":80/"))
 			/*url == "http://171.64.65.20:8080/" ||
 			url == "http://171.64.122.76:8080/" ||
 			url == "http://171.64.122.74:8080/" ||
