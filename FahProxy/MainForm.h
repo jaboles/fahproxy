@@ -11,7 +11,7 @@ namespace FahProxy {
 	using namespace System::Data;
 	using namespace System::Drawing;
 
-	public __gc class ProxyListener;
+	ref class ProxyListener;
 
 	/// <summary>
 	/// Summary for Form1
@@ -22,39 +22,39 @@ namespace FahProxy {
 	///          the designers will not be able to interact properly with localized
 	///          resources associated with this form.
 	/// </summary>
-	public __gc class MainForm : public System::Windows::Forms::Form
+	public ref class MainForm : public System::Windows::Forms::Form
 	{
 	public:
 		MainForm(void)
 		{
 			m_disposed = false;
 			InitializeComponent();
-			this->Text = String::Concat(S"FAH Proxy v", FoldingAtHomeProxy::VERSION);
+			this->Text = String::Concat((String^)"FAH Proxy v", (String^)FoldingAtHomeProxy::VERSION);
 		}
 		
-		void AddQueueItem(int index, System::String* time, String* receivedFrom, int size, System::String* username, System::String* team, System::String* userId, int machineId, System::String* destServer, int status);
-		void UpdateQueueItemStatus(int index, int status, double progress, System::String* errorString);
+		void AddQueueItem(int index, System::String^ time, String^ receivedFrom, int size, System::String^ username, System::String^ team, System::String^ userId, int machineId, System::String^ destServer, int status);
+		void UpdateQueueItemStatus(int index, int status, double progress, System::String^ errorString);
 		void UpdateQueueItemStatus(int index, int status);
 		void RemoveQueueItem(int index);
 
-		static System::String* UploadStatusString(int index);
+		static System::String^ UploadStatusString(int index);
 
-	private: System::Windows::Forms::ListView*  m_uploadList;
-	private: System::Windows::Forms::ColumnHeader*  m_numberColumn;
-	private: System::Windows::Forms::ColumnHeader*  m_timeColumn;
-	private: System::Windows::Forms::ColumnHeader*  m_sizeColumn;
-	private: System::Windows::Forms::ColumnHeader*  m_usernameColumn;
-	private: System::Windows::Forms::ColumnHeader*  m_teamColumn;
-	private: System::Windows::Forms::ColumnHeader*  m_userIdColumn;
-	private: System::Windows::Forms::ColumnHeader*  m_machineNameColumn;
-	private: System::Windows::Forms::ColumnHeader*  m_destinationColumn;
-	private: System::Windows::Forms::ColumnHeader*  m_statusColumn;
-	private: System::Windows::Forms::Label*  m_uploadQueueLabel;
-	private: System::Windows::Forms::ColumnHeader*  m_receivedFromIpColumn;
+	private: System::Windows::Forms::ListView^  m_uploadList;
+	private: System::Windows::Forms::ColumnHeader^  m_numberColumn;
+	private: System::Windows::Forms::ColumnHeader^  m_timeColumn;
+	private: System::Windows::Forms::ColumnHeader^  m_sizeColumn;
+	private: System::Windows::Forms::ColumnHeader^  m_usernameColumn;
+	private: System::Windows::Forms::ColumnHeader^  m_teamColumn;
+	private: System::Windows::Forms::ColumnHeader^  m_userIdColumn;
+	private: System::Windows::Forms::ColumnHeader^  m_machineNameColumn;
+	private: System::Windows::Forms::ColumnHeader^  m_destinationColumn;
+	private: System::Windows::Forms::ColumnHeader^  m_statusColumn;
+	private: System::Windows::Forms::Label^  m_uploadQueueLabel;
+	private: System::Windows::Forms::ColumnHeader^  m_receivedFromIpColumn;
 	public: 
 
-		__delegate void SetUploadQueueTextDelegate(int, int, System::String*);
-		__delegate void AddUploadQueueItemDelegate(System::Windows::Forms::ListViewItem*);
+		delegate void SetUploadQueueTextDelegate(int, int, System::String^);
+		delegate void AddUploadQueueItemDelegate(System::Windows::Forms::ListViewItem^);
 
 	protected:
 		/// <summary>
@@ -66,22 +66,22 @@ namespace FahProxy {
 
 			if (components)
 			{
-				//delete components;
+				delete components;
 			}
 		}
 	
 	private:
 
 
-		void SetUploadQueueText(int index, int subItemIndex, System::String* text);
-		void AddUploadQueueItem(System::Windows::Forms::ListViewItem* item);
+		void SetUploadQueueText(int index, int subItemIndex, System::String^ text);
+		void AddUploadQueueItem(System::Windows::Forms::ListViewItem^ item);
 
 		bool m_disposed;
 
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
-		System::ComponentModel::Container *components;
+		System::ComponentModel::Container ^components;
 
 #pragma region Windows Form Designer generated code
 		/// <summary>
@@ -90,18 +90,18 @@ namespace FahProxy {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			this->m_uploadList = (new System::Windows::Forms::ListView());
-			this->m_numberColumn = (new System::Windows::Forms::ColumnHeader());
-			this->m_timeColumn = (new System::Windows::Forms::ColumnHeader());
-			this->m_sizeColumn = (new System::Windows::Forms::ColumnHeader());
-			this->m_usernameColumn = (new System::Windows::Forms::ColumnHeader());
-			this->m_teamColumn = (new System::Windows::Forms::ColumnHeader());
-			this->m_userIdColumn = (new System::Windows::Forms::ColumnHeader());
-			this->m_machineNameColumn = (new System::Windows::Forms::ColumnHeader());
-			this->m_destinationColumn = (new System::Windows::Forms::ColumnHeader());
-			this->m_statusColumn = (new System::Windows::Forms::ColumnHeader());
-			this->m_uploadQueueLabel = (new System::Windows::Forms::Label());
-			this->m_receivedFromIpColumn = (new System::Windows::Forms::ColumnHeader());
+			this->m_uploadList = (gcnew System::Windows::Forms::ListView());
+			this->m_numberColumn = (gcnew System::Windows::Forms::ColumnHeader());
+			this->m_timeColumn = (gcnew System::Windows::Forms::ColumnHeader());
+			this->m_sizeColumn = (gcnew System::Windows::Forms::ColumnHeader());
+			this->m_usernameColumn = (gcnew System::Windows::Forms::ColumnHeader());
+			this->m_teamColumn = (gcnew System::Windows::Forms::ColumnHeader());
+			this->m_userIdColumn = (gcnew System::Windows::Forms::ColumnHeader());
+			this->m_machineNameColumn = (gcnew System::Windows::Forms::ColumnHeader());
+			this->m_destinationColumn = (gcnew System::Windows::Forms::ColumnHeader());
+			this->m_statusColumn = (gcnew System::Windows::Forms::ColumnHeader());
+			this->m_uploadQueueLabel = (gcnew System::Windows::Forms::Label());
+			this->m_receivedFromIpColumn = (gcnew System::Windows::Forms::ColumnHeader());
 			this->SuspendLayout();
 			// 
 			// m_uploadList
@@ -109,7 +109,7 @@ namespace FahProxy {
 			this->m_uploadList->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom) 
 				| System::Windows::Forms::AnchorStyles::Left) 
 				| System::Windows::Forms::AnchorStyles::Right));
-			this->m_uploadList->Columns->AddRange(new System::Windows::Forms::ColumnHeader* [10] {this->m_numberColumn, 
+			this->m_uploadList->Columns->AddRange(gcnew cli::array< System::Windows::Forms::ColumnHeader^  >(10) {this->m_numberColumn, 
 				this->m_timeColumn, this->m_receivedFromIpColumn, this->m_sizeColumn, this->m_usernameColumn, this->m_teamColumn, this->m_userIdColumn, 
 				this->m_machineNameColumn, this->m_destinationColumn, this->m_statusColumn});
 			this->m_uploadList->FullRowSelect = true;

@@ -5,24 +5,24 @@ using namespace FahProxy;
 using namespace System;
 using namespace System::IO;
 
-WorkUnit::WorkUnit(String* filename)
+WorkUnit::WorkUnit(String^ filename)
 {
 	m_baseFilename = filename;
 	m_path = String::Concat(System::Environment::GetEnvironmentVariable("appdata"), "\\FahProxy\\", m_baseFilename);
 
-	String* wuDataFilename = String::Concat(m_path, ".wu");
-	FileInfo* fi = new FileInfo(wuDataFilename);
+	String^ wuDataFilename = String::Concat(m_path, ".wu");
+	FileInfo^ fi = gcnew FileInfo(wuDataFilename);
 	m_wuDataSize = fi->Length;
 	m_time = fi->CreationTime;
 
 	// Read data
-	Stream* fs = GetDataStream();
-	m_info = new unsigned char __gc [FAH_RESPONSE_BUFFER_SIZE];
+	Stream^ fs = GetDataStream();
+	m_info = gcnew array<unsigned char, 1>(FAH_RESPONSE_BUFFER_SIZE);
 	fs->Read(m_info, 0, m_info->Length);
 	fs->Close();
 
 	// Read metadata
-	fs = new FileStream(String::Concat(m_path, ".txt"), FileMode::Open, FileAccess::Read);
+	fs = gcnew FileStream(String::Concat(m_path, ".txt"), FileMode::Open, FileAccess::Read);
 	m_uploadHost = Utils::ReadLineFromStream(fs);
 	m_uploadPort = Convert::ToInt32(Utils::ReadLineFromStream(fs));
 	m_hostReceivedFrom = Utils::ReadLineFromStream(fs);
@@ -44,14 +44,14 @@ int WorkUnit::GetDataSize()
 	return m_wuDataSize;
 }
 
-System::String* WorkUnit::GetHostReceivedFrom()
+System::String^ WorkUnit::GetHostReceivedFrom()
 {
 	return m_hostReceivedFrom;
 }
 
-System::String* WorkUnit::GetUserId()
+System::String^ WorkUnit::GetUserId()
 {
-	unsigned char a __gc [] = new unsigned char __gc [8];
+	array<int,1>^ a = gcnew array<int,1>(8);
 	Array::Copy(m_info, 288, a, 0, 8);
 
 	__int64 userId = 0;
@@ -65,7 +65,7 @@ System::String* WorkUnit::GetUserId()
 	return userId.ToString("X");
 }
 
-String* WorkUnit::GetUsername()
+String^ WorkUnit::GetUsername()
 {
 	return System::Text::Encoding::ASCII->GetString(m_info, 160, 64);
 }
@@ -75,12 +75,12 @@ int WorkUnit::GetMachineId()
 	return (int)m_info[87];
 }
 
-String* WorkUnit::GetTeam()
+String^ WorkUnit::GetTeam()
 {
 	return System::Text::Encoding::ASCII->GetString(m_info, 224, 64);
 }
 
-System::String* WorkUnit::GetUploadHost()
+System::String^ WorkUnit::GetUploadHost()
 {
 	return m_uploadHost;
 }
@@ -90,17 +90,17 @@ int WorkUnit::GetUploadPort()
 	return m_uploadPort;
 }
 
-System::IO::Stream* WorkUnit::GetDataStream()
+System::IO::Stream^ WorkUnit::GetDataStream()
 {
-	String* filename = String::Concat(m_path, ".wu");
-	return new FileStream(filename, FileMode::Open, FileAccess::Read);
+	String^ filename = String::Concat(m_path, ".wu");
+	return gcnew FileStream(filename, FileMode::Open, FileAccess::Read);
 }
 
-System::IO::Stream* WorkUnit::GetTranslatedResponseStream()
+System::IO::Stream^ WorkUnit::GetTranslatedResponseStream()
 {
 
-	MemoryStream* ms = new MemoryStream();
-	unsigned char a __gc [] = new unsigned char __gc [4];
+	MemoryStream^ ms = gcnew MemoryStream();
+	array<unsigned char, 1>^ a = gcnew array<unsigned char, 1>(4);
 
 	// decimal 400 (offset 0)
 	ms->WriteByte(0x00); ms->WriteByte(0x00); ms->WriteByte(0x01); ms->WriteByte(0x90);
@@ -190,9 +190,9 @@ System::IO::Stream* WorkUnit::GetTranslatedResponseStream()
 	return ms;
 }
 
-void WorkUnit::WriteReceipt(unsigned char receiptBuffer __gc [])
+void WorkUnit::WriteReceipt(array<unsigned char,1>^ receiptBuffer)
 {
-	Stream* f = new FileStream(String::Concat(m_path, ".receipt"), FileMode::Create);
+	Stream^ f = gcnew FileStream(String::Concat(m_path, ".receipt"), FileMode::Create);
 	f->Write(receiptBuffer, 0, 512);
 	f->Close();
 }
@@ -204,7 +204,7 @@ void WorkUnit::CleanUpFile()
 		File::Delete(String::Concat(m_path, ".wu"));
 		File::Delete(String::Concat(m_path, ".txt"));
 	}
-	catch (System::IO::IOException*)
+	catch (System::IO::IOException^)
 	{
 		// Ignore.
 	}

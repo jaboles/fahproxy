@@ -2,12 +2,12 @@
 
 namespace FahProxy
 {
-	public __gc class UploadManager;
+	ref class UploadManager;
 
-	public __gc class ProxyListener
+	public ref class ProxyListener
 	{
 	public:
-		ProxyListener(UploadManager* uploadManager, int port);
+		ProxyListener(UploadManager^ uploadManager, int port);
 		~ProxyListener();
 		void Start();
 		void Stop();
@@ -16,9 +16,9 @@ namespace FahProxy
 		void ThreadEntry();
 
 		int m_port;
-		System::Threading::Thread* m_listenThread;
-		System::Net::Sockets::Socket* m_listenSocket;
-		UploadManager* m_uploadManager;
+		System::Threading::Thread^ m_listenThread;
+		System::Net::Sockets::Socket^ m_listenSocket;
+		UploadManager^ m_uploadManager;
 		bool m_running;
 
 		static const int MAX_LISTEN_BACKLOG = 10;

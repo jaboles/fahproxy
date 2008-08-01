@@ -8,22 +8,22 @@ using namespace System::Net::Sockets;
 using namespace System::Text;
 using namespace System;
 
-NormalProxyHandler::NormalProxyHandler(System::String* localHost, System::String* method, System::String* url, System::String* protocolVersion, System::Net::Sockets::NetworkStream* ns, System::IO::MemoryStream* headers)
+NormalProxyHandler::NormalProxyHandler(System::String^ localHost, System::String^ method, System::String^ url, System::String^ protocolVersion, System::Net::Sockets::NetworkStream^ ns, System::IO::MemoryStream^ headers)
 {
 	m_requestMethod = method;
 	m_headersStream = headers;
 	m_localHost = localHost;
 	if (m_requestMethod == "CONNECT")
 	{
-		wchar_t splitChars __gc [] = {':'};
-		String* parts __gc [] = url->Split(splitChars);
+		array<wchar_t>^ splitChars = {':'};
+		array<String^>^ parts = url->Split(splitChars);
 
 		m_host = parts[0];
 		m_port = Convert::ToInt32(parts[1]);
 	}
 	else
 	{
-		System::Uri* uri = new System::Uri(url);
+		System::Uri^ uri = gcnew System::Uri(url);
 		m_host = uri->Host;
 		m_port = uri->Port > 0? uri->Port : 80;
 		m_path = uri->AbsoluteUri;
@@ -31,12 +31,12 @@ NormalProxyHandler::NormalProxyHandler(System::String* localHost, System::String
 	}
 	m_protocolVersion = protocolVersion;
 	m_proxyStream = ns;
-	m_buffer = new unsigned char __gc [BUFFER_LENGTH];
+	m_buffer = gcnew array<unsigned char, 1>(BUFFER_LENGTH);
 
-	System::Random* r = new System::Random();
+	System::Random^ r = gcnew System::Random();
 #ifdef _DEBUG
-	System::String* traceFilename = String::Concat("proxytrace-", System::Convert::ToString(r->Next()), ".txt");
-	m_traceStream = new System::IO::FileStream(traceFilename, FileMode::Create);
+	System::String^ traceFilename = String::Concat("proxytrace-", System::Convert::ToString(r->Next()), ".txt");
+	m_traceStream = gcnew System::IO::FileStream(traceFilename, FileMode::Create);
 #endif
 }
 
@@ -46,20 +46,20 @@ NormalProxyHandler::~NormalProxyHandler()
 
 void NormalProxyHandler::HandleIt()
 {
-	Socket *webRequestSocket = new Socket(AddressFamily::InterNetwork, SocketType::Stream, ProtocolType::Tcp);
+	Socket ^webRequestSocket = gcnew Socket(AddressFamily::InterNetwork, SocketType::Stream, ProtocolType::Tcp);
 	int contentLength = 0;
 
 	try
 	{
 		webRequestSocket->Connect(m_host, m_port);
-		m_requestStream = new NetworkStream(webRequestSocket, true);
+		m_requestStream = gcnew NetworkStream(webRequestSocket, true);
 
 		if (m_requestMethod == "CONNECT")
 		{
 			// Trash the headers
 			for
 			(
-				String* line = Utils::ReadLineFromStream(m_proxyStream);
+				String^ line = Utils::ReadLineFromStream(m_proxyStream);
 				line != "";
 				line = Utils::ReadLineFromStream(m_proxyStream)
 			)
@@ -76,7 +76,7 @@ void NormalProxyHandler::HandleIt()
 		}
 		else
 		{
-			String* requestLine;
+			String^ requestLine;
 			requestLine = String::Concat(m_requestMethod, " ", m_path);
 			requestLine = String::Concat(requestLine, " ", m_protocolVersion);
 			Utils::WriteLineToStream(m_requestStream, requestLine);
@@ -90,9 +90,9 @@ void NormalProxyHandler::HandleIt()
 			PassThroughResponseContent();
 		}
 	}
-	catch (System::IO::IOException*) {}
-	catch (System::Net::Sockets::SocketException*) {}
-	__finally
+	catch (System::IO::IOException^) {}
+	catch (System::Net::Sockets::SocketException^) {}
+	finally
 	{
 		if (m_requestStream)
 		{
@@ -115,7 +115,7 @@ void NormalProxyHandler::PassThroughRequestHeaders()
 	m_headersStream->Seek(0, SeekOrigin::Begin);
 	for
 	(
-		String* line = Utils::ReadLineFromStream(m_headersStream);
+		String^ line = Utils::ReadLineFromStream(m_headersStream);
 		line != "";
 		line = Utils::ReadLineFromStream(m_headersStream)
 	)
@@ -141,7 +141,7 @@ void NormalProxyHandler::PassThroughResponseHeaders()
 {
 	for
 	(
-		String* line = Utils::ReadLineFromStream(m_requestStream);
+		String^ line = Utils::ReadLineFromStream(m_requestStream);
 		line != "";
 		line = Utils::ReadLineFromStream(m_requestStream)
 	)
@@ -192,7 +192,7 @@ void NormalProxyHandler::PassThroughEverything()
 	}
 }
 
-void NormalProxyHandler::CopyBytes(System::IO::Stream* stream1, System::IO::Stream* stream2, int contentLength)
+void NormalProxyHandler::CopyBytes(System::IO::Stream^ stream1, System::IO::Stream^ stream2, int contentLength)
 {
 	// Pass through data
 	for
@@ -212,7 +212,7 @@ void NormalProxyHandler::CopyBytes(System::IO::Stream* stream1, System::IO::Stre
 	stream2->Flush();
 }
 
-void NormalProxyHandler::WriteTrace(System::String* line)
+void NormalProxyHandler::WriteTrace(System::String^ line)
 {
 #ifdef _DEBUG
 	if (m_traceStream)
@@ -222,7 +222,7 @@ void NormalProxyHandler::WriteTrace(System::String* line)
 #endif
 }
 
-void NormalProxyHandler::WriteTrace(unsigned char buffer __gc [], int index, int count)
+void NormalProxyHandler::WriteTrace(array<unsigned char,1>^ buffer, int index, int count)
 {
 #ifdef _DEBUG
 	if (m_traceStream)

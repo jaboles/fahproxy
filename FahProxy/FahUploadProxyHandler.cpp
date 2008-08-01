@@ -8,7 +8,7 @@ using namespace System;
 using namespace System::IO;
 using namespace System::Net;
 
-FahUploadProxyHandler::FahUploadProxyHandler(System::String* localHost, System::String* method, System::String* url, System::String* protocolVersion, System::Net::Sockets::NetworkStream* ns, System::IO::MemoryStream* headers, UploadManager* uploadManager)
+FahUploadProxyHandler::FahUploadProxyHandler(System::String^ localHost, System::String^ method, System::String^ url, System::String^ protocolVersion, System::Net::Sockets::NetworkStream^ ns, System::IO::MemoryStream^ headers, UploadManager^ uploadManager)
 : NormalProxyHandler(localHost, method, url, protocolVersion, ns, headers)
 {
 	m_uploadManager = uploadManager;
@@ -20,17 +20,17 @@ void FahUploadProxyHandler::HandleIt()
 	{
 		int wuDataSize = 0;
 
-		System::Random* r = new System::Random();
-		String* folderName = String::Concat(System::Environment::GetEnvironmentVariable("appdata"), "\\FahProxy\\");	
-		String* fileName = String::Concat(Convert::ToString(System::DateTime::Now.Ticks), "-", Convert::ToString(r->Next()));
+		System::Random^ r = gcnew System::Random();
+		String^ folderName = String::Concat(System::Environment::GetEnvironmentVariable("appdata"), "\\FahProxy\\");	
+		String^ fileName = String::Concat(Convert::ToString(System::DateTime::Now.Ticks), "-", Convert::ToString(r->Next()));
 
 		if (!Directory::Exists(folderName))
 		{
 			Directory::CreateDirectory(folderName);
 		}
 
-		m_wuStream = new FileStream(String::Concat(folderName, fileName, ".wu"), FileMode::Create);
-		m_metadataStream = new FileStream(String::Concat(folderName, fileName, ".txt"), FileMode::Create);
+		m_wuStream = gcnew FileStream(String::Concat(folderName, fileName, ".wu"), FileMode::Create);
+		m_metadataStream = gcnew FileStream(String::Concat(folderName, fileName, ".txt"), FileMode::Create);
 
 		Utils::WriteLineToStream(m_metadataStream, m_host);
 		Utils::WriteLineToStream(m_metadataStream, Convert::ToString(m_port));
@@ -41,7 +41,7 @@ void FahUploadProxyHandler::HandleIt()
 		m_headersStream->Seek(0, SeekOrigin::Begin);
 		for
 		(
-			String* line = Utils::ReadLineFromStream(m_headersStream);
+			String^ line = Utils::ReadLineFromStream(m_headersStream);
 			line != "";
 			line = Utils::ReadLineFromStream(m_headersStream)
 		)
@@ -60,7 +60,7 @@ void FahUploadProxyHandler::HandleIt()
 		CopyBytes(m_proxyStream, m_wuStream, wuDataSize);
 		m_wuStream->Close();
 
-		WorkUnit* wu = new WorkUnit(fileName);
+		WorkUnit^ wu = gcnew WorkUnit(fileName);
 
 		// Produce the response stream.
 		Utils::WriteLineToStream(m_proxyStream, "HTTP/1.1 200 OK");
@@ -69,16 +69,16 @@ void FahUploadProxyHandler::HandleIt()
 		Utils::WriteLineToStream(m_proxyStream, "Transfer-Encoding: chunked");
 		Utils::WriteLineToStream(m_proxyStream, "");
 		Utils::WriteLineToStream(m_proxyStream, "200");
-		Stream* simulatedStanfordResponse = wu->GetTranslatedResponseStream();
-		CopyBytes(simulatedStanfordResponse, m_proxyStream, (int)simulatedStanfordResponse->Length);
+		Stream^ simulatedStanfordResponse = wu->GetTranslatedResponseStream();
+		CopyBytes(simulatedStanfordResponse, m_proxyStream, simulatedStanfordResponse->Length);
 		Utils::WriteLineToStream(m_proxyStream, "0");
 		Utils::WriteLineToStream(m_proxyStream, "");
 
 		m_uploadManager->AddToQueue(wu);
 	}
-	catch (System::IO::IOException*) {}
-	catch (System::Net::Sockets::SocketException*) {}
-	__finally
+	catch (System::IO::IOException^) {}
+	catch (System::Net::Sockets::SocketException^) {}
+	finally
 	{
 		if (m_wuStream)
 		{
