@@ -44,10 +44,9 @@ namespace FahProxy
 		void UploadFailed(System::Object* sender, System::EventArgs* e);
 		void ProgressChanged(System::Object* sender, System::EventArgs* e);
 
-		System::Collections::ArrayList* m_masterList;
-		System::Collections::Queue* m_uploadQueue;
-		System::Collections::ArrayList* m_uploaders;
-		MainForm* m_mainForm;
+		System::Collections::ArrayList^ m_masterList;
+		System::Collections::ArrayList^ m_uploaders;
+		MainForm^ m_mainForm;
 		bool m_running;
 	};
 }

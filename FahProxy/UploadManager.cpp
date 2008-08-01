@@ -58,9 +58,8 @@ UploadManager::UploadManager(MainForm* mainForm)
 {
 	m_mainForm = mainForm;
 	m_running = true;
-	m_uploadQueue = new Queue();
-	m_uploaders = new ArrayList();
-	m_masterList = new ArrayList();
+	m_uploaders = gcnew ArrayList();
+	m_masterList = gcnew ArrayList();
 
 	String* folder = String::Concat(System::Environment::GetEnvironmentVariable("appdata"), "\\FahProxy\\");
 	String* fileList __gc [] = Directory::GetFiles(folder, "*.wu", SearchOption::TopDirectoryOnly);
@@ -95,10 +94,7 @@ void UploadManager::AddToQueue(WorkUnit* wu)
 	UploadQueueEntry* qe = new UploadQueueEntry(wu);
 	qe->SetStatus(UploadQueueEntry::WAITING);
 
-	Monitor::Enter(m_uploadQueue);
-	m_uploadQueue->Enqueue(qe);
 	m_masterList->Add(qe);
-	Monitor::Exit(m_uploadQueue);
 
 	//if (m_mainForm && m_mainForm->Visible)
 	{
@@ -133,14 +129,22 @@ void UploadManager::UploadDispatchThread()
 		{
 			Uploader* u = static_cast<Uploader*>(m_uploaders->Item[i]);
 
-			Monitor::Enter(m_uploadQueue);
-			if (m_uploadQueue->Count > 0 && !u->IsActive() && !static_cast<UploadQueueEntry*>(m_uploadQueue->Peek())->FailedRecently(120))
+			if (!u->IsActive())
 			{
-				UploadQueueEntry* qe = static_cast<UploadQueueEntry*>(m_uploadQueue->Dequeue());
-				String* s = qe->GetWorkUnit()->GetUploadHost();
-				u->DoUpload(qe);
+				for (int j = 0; j < m_masterList->Count; j++)
+				{
+					UploadQueueEntry^ qe = static_cast<UploadQueueEntry^>(m_masterList[j]);
+
+					if
+					(
+						(qe->GetStatus() == UploadQueueEntry::WAITING || qe->GetStatus() == UploadQueueEntry::UPLOAD_FAILED) &&
+						!qe->FailedRecently(120)
+					)
+					{
+						u->DoUpload(qe);
+					}
+				}
 			}
-			Monitor::Exit(m_uploadQueue);
 		}
 	}
 }
@@ -166,11 +170,6 @@ void UploadManager::UploadFailed(System::Object* sender, System::EventArgs* e)
 {
 	Uploader* u = static_cast<Uploader*>(sender);
 	UploadQueueEntry* qe = u->GetCurrentQueueEntry();
-
-	// Queue it to try it again.
-	Monitor::Enter(m_uploadQueue);
-	m_uploadQueue->Enqueue(qe);
-	Monitor::Exit(m_uploadQueue);
 
 	// Find the queue entry in the master list.
 	for (int i = 0; i < m_masterList->Count; i++)
