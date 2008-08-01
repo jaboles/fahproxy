@@ -2,17 +2,17 @@
 
 namespace FahProxy
 {
-	ref class WorkUnit;
-	ref class MainForm;
+	public __gc class WorkUnit;
+	public __gc class MainForm;
 
-	public ref class UploadQueueEntry
+	public __gc class UploadQueueEntry
 	{
 	public:
-		UploadQueueEntry(WorkUnit^ wu);
-		WorkUnit^ GetWorkUnit();
-		void SetErrorString(System::String^ errorString);
+		UploadQueueEntry(WorkUnit* wu);
+		WorkUnit* GetWorkUnit();
+		void SetErrorString(System::String* errorString);
 		void SetStatus(int status);
-		System::String^ GetErrorString();
+		System::String* GetErrorString();
 		int GetStatus();
 		bool FailedRecently(int seconds);
 
@@ -21,18 +21,18 @@ namespace FahProxy
 		static const int UPLOAD_COMPLETED = 3;
 		static const int UPLOAD_FAILED = 4;
 	protected:
-		WorkUnit^ m_workUnit;
+		WorkUnit* m_workUnit;
 		int m_status;
-		System::String^ m_errorString;
+		System::String* m_errorString;
 		__int64 m_lastFailed;
 	};
 
-	public ref class UploadManager
+	public __gc class UploadManager
 	{
 	public:
-		UploadManager(MainForm^ mainForm);
+		UploadManager(MainForm* mainForm);
 		~UploadManager();
-		void AddToQueue(WorkUnit^ wu);
+		void AddToQueue(WorkUnit* wu);
 		void Stop();
 
 		static const int m_simultaneousUploads = 1;
@@ -40,14 +40,14 @@ namespace FahProxy
 	protected:
 		void UploadDispatchThread();
 
-		void UploadFinished(System::Object^ sender, System::EventArgs^ e);
-		void UploadFailed(System::Object^ sender, System::EventArgs^ e);
-		void ProgressChanged(System::Object^ sender, System::EventArgs^ e);
+		void UploadFinished(System::Object* sender, System::EventArgs* e);
+		void UploadFailed(System::Object* sender, System::EventArgs* e);
+		void ProgressChanged(System::Object* sender, System::EventArgs* e);
 
-		System::Collections::ArrayList^ m_masterList;
-		System::Collections::Queue^ m_uploadQueue;
-		System::Collections::ArrayList^ m_uploaders;
-		MainForm^ m_mainForm;
+		System::Collections::ArrayList* m_masterList;
+		System::Collections::Queue* m_uploadQueue;
+		System::Collections::ArrayList* m_uploaders;
+		MainForm* m_mainForm;
 		bool m_running;
 	};
 }

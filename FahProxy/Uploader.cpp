@@ -13,19 +13,19 @@ using namespace System::Threading;
 Uploader::Uploader(int index)
 {
 	m_index = index;
-	m_buffer = gcnew array<unsigned char, 1>(BUFFER_SIZE);
+	m_buffer = new unsigned char __gc [BUFFER_SIZE];
 }
 
 Uploader::~Uploader()
 {
 }
 
-void Uploader::DoUpload(UploadQueueEntry^ qe)
+void Uploader::DoUpload(UploadQueueEntry* qe)
 {
 	m_currentUpload = qe;
 
-	ThreadStart^ ts = gcnew ThreadStart(this, &Uploader::UploadThreadEntry);
-	(gcnew Thread(ts))->Start();
+	ThreadStart* ts = new ThreadStart(this, &Uploader::UploadThreadEntry);
+	(new Thread(ts))->Start();
 }
 
 void Uploader::UploadThreadEntry()
@@ -36,19 +36,19 @@ void Uploader::UploadThreadEntry()
 	m_currentUpload->SetStatus(UploadQueueEntry::UPLOADING);
 	ProgressChanged(this, System::EventArgs::Empty);
 
-	Stream^ wuDataStream;
+	Stream* wuDataStream;
 
 	try
 	{
-		m_socket = gcnew Socket(AddressFamily::InterNetwork, SocketType::Stream, ProtocolType::Tcp);
+		m_socket = new Socket(AddressFamily::InterNetwork, SocketType::Stream, ProtocolType::Tcp);
 		wuDataStream = m_currentUpload->GetWorkUnit()->GetDataStream();
 		m_socket->Connect(m_currentUpload->GetWorkUnit()->GetUploadHost(), m_currentUpload->GetWorkUnit()->GetUploadPort());
-		m_networkStream = gcnew System::Net::Sockets::NetworkStream(m_socket, true);
+		m_networkStream = new System::Net::Sockets::NetworkStream(m_socket, true);
 
 		Utils::WriteLineToStream(m_networkStream, "POST / HTTP/1.1");
-		Utils::WriteLineToStream(m_networkStream, String::Format("Host: {0}:{1}", m_currentUpload->GetWorkUnit()->GetUploadHost(), m_currentUpload->GetWorkUnit()->GetUploadPort()));
+		Utils::WriteLineToStream(m_networkStream, String::Format(S"Host: {0}:{1}", __box(m_currentUpload->GetWorkUnit()->GetUploadHost(), m_currentUpload->GetWorkUnit()->GetUploadPort())));
 		Utils::WriteLineToStream(m_networkStream, "Connection: Keep-Alive");
-		Utils::WriteLineToStream(m_networkStream, String::Format("Content-Length: {0}", m_currentUpload->GetWorkUnit()->GetDataSize()));
+		Utils::WriteLineToStream(m_networkStream, String::Format(S"Content-Length: {0}", __box(m_currentUpload->GetWorkUnit()->GetDataSize())));
 		Utils::WriteLineToStream(m_networkStream, "");
 		m_networkStream->Flush();
 
@@ -63,16 +63,16 @@ void Uploader::UploadThreadEntry()
 		m_networkStream->Flush();
 		wuDataStream->Close();
 
-		array<unsigned char, 1>^ receiptBuffer = gcnew array<unsigned char, 1>(512);
+		unsigned char receiptBuffer __gc [] = new unsigned char __gc [512];
 		int responseContentLength = 0;
 		int httpResponseCode = 0;
-		String^ httpResponseLine;
-		String^ line1;
-		String^ line2;
-		String^ line3;
+		String* httpResponseLine;
+		String* line1;
+		String* line2;
+		String* line3;
 		for
 		(
-			String^ line = Utils::ReadLineFromStream(m_networkStream);
+			String* line = Utils::ReadLineFromStream(m_networkStream);
 			line != "";
 			line = Utils::ReadLineFromStream(m_networkStream)
 		)
@@ -125,13 +125,13 @@ void Uploader::UploadThreadEntry()
 			UploadFailed(this, System::EventArgs::Empty);	
 		}
 	}
-	catch (System::Exception^ ex)
+	catch (System::Exception* ex)
 	{
 		m_currentUpload->SetStatus(UploadQueueEntry::UPLOAD_FAILED);
 		m_currentUpload->SetErrorString(ex->Message);
 		UploadFailed(this, System::EventArgs::Empty);	
 	}
-	finally
+	__finally
 	{
 		//ProgressChanged(this, System::EventArgs::Empty);
 
@@ -154,7 +154,7 @@ void Uploader::UploadThreadEntry()
 	}
 }
 
-UploadQueueEntry^ Uploader::GetCurrentQueueEntry()
+UploadQueueEntry* Uploader::GetCurrentQueueEntry()
 {
 	return m_currentUpload;
 }

@@ -5,23 +5,23 @@ using namespace System;
 using namespace System::IO;
 using namespace System::Text;
 
-void Utils::WriteLineToStream(System::IO::Stream^ stream, System::String^ line)
+void Utils::WriteLineToStream(System::IO::Stream* stream, System::String* line)
 {
-	Encoding^ enc = Encoding::Default;
+	Encoding* enc = Encoding::Default;
 
-	array<unsigned char,1>^ bytes = enc->GetBytes(line);
+	unsigned char bytes __gc [] = enc->GetBytes(line);
 	stream->Write(bytes, 0, bytes->Length);
 	stream->WriteByte(13);
 	stream->WriteByte(10);
 }
 
-System::String^ Utils::ReadLineFromStream(System::IO::Stream^ stream)
+System::String* Utils::ReadLineFromStream(System::IO::Stream* stream)
 {
-	Encoding^ enc = Encoding::Default;
+	Encoding* enc = Encoding::Default;
 
-	StringBuilder^ sb = gcnew StringBuilder();	
+	StringBuilder* sb = new StringBuilder();	
 	
-	array<unsigned char,1>^ bytes = gcnew array<unsigned char,1>(1);
+	unsigned char bytes __gc [] = new unsigned char __gc [1];
 	for (int i = 0; bytes[0] != 13 && bytes[0] != 10; i++)
 	{
 		stream->Read(bytes, 0, 1);

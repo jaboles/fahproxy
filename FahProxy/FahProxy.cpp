@@ -7,26 +7,26 @@
 
 using namespace FahProxy;
 
-[STAThreadAttribute]
-int main(array<System::String ^> ^args)
+//[STAThreadAttribute]
+int main(System::String* args __gc [])
 {
 	// Enabling Windows XP visual effects before any controls are created
 	Application::EnableVisualStyles();
 	Application::SetCompatibleTextRenderingDefault(false); 
 
 	// Create the main window and run it
-	gcnew FoldingAtHomeProxy();
+	new FoldingAtHomeProxy();
 	return 0;
 }
 
 FoldingAtHomeProxy::FoldingAtHomeProxy()
 {
-	MainForm^ mainForm = gcnew MainForm();
+	MainForm* mainForm = new MainForm();
 
 
-	m_uploadManager = gcnew UploadManager(mainForm);
+	m_uploadManager = new UploadManager(mainForm);
 
-	m_proxyListener = gcnew ProxyListener(m_uploadManager, 8080);
+	m_proxyListener = new ProxyListener(m_uploadManager, 8080);
 	m_proxyListener->Start();
 
 
