@@ -80,19 +80,24 @@ void FahUploadProxyHandler::HandleIt()
 	catch (System::Net::Sockets::SocketException^) {}
 	finally
 	{
-		if (m_wuStream)
-		{
-			m_wuStream->Close();
-		}
+		Close();
+	}
+}
 
-		if (m_metadataStream)
-		{
-			m_metadataStream->Close();
-		}
+void FahUploadProxyHandler::Close()
+{
+	if (m_wuStream)
+	{
+		m_wuStream->Close();
+	}
 
-		if (m_traceStream)
-		{
-			m_traceStream->Close();
-		}
+	if (m_metadataStream)
+	{
+		m_metadataStream->Close();
+	}
+
+	if (m_traceStream)
+	{
+		m_traceStream->Close();
 	}
 }

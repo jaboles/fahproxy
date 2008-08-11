@@ -8,6 +8,7 @@ namespace FahProxy
 		NormalProxyHandler(System::String^ localHost, System::String^ method, System::String^ url, System::String^ protocolVersion, System::Net::Sockets::NetworkStream^ ns, System::IO::MemoryStream^ headers);
 		~NormalProxyHandler();
 		virtual void HandleIt();
+		virtual void Close();
 	protected:
 		void PassThroughRequestHeaders();
 		void PassThroughRequestContent();
@@ -18,6 +19,7 @@ namespace FahProxy
 		void WriteTrace(System::String^ line);
 		void WriteTrace(array<unsigned char,1>^ buffer, int index, int count);
 
+		System::Net::Sockets::Socket^ m_webRequestSocket;
 		System::String^ m_requestMethod;
 		System::String^ m_protocolVersion;
 		System::String^ m_host;

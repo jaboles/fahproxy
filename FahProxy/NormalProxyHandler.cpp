@@ -46,13 +46,13 @@ NormalProxyHandler::~NormalProxyHandler()
 
 void NormalProxyHandler::HandleIt()
 {
-	Socket ^webRequestSocket = gcnew Socket(AddressFamily::InterNetwork, SocketType::Stream, ProtocolType::Tcp);
+	m_webRequestSocket = gcnew Socket(AddressFamily::InterNetwork, SocketType::Stream, ProtocolType::Tcp);
 	int contentLength = 0;
 
 	try
 	{
-		webRequestSocket->Connect(m_host, m_port);
-		m_requestStream = gcnew NetworkStream(webRequestSocket, true);
+		m_webRequestSocket->Connect(m_host, m_port);
+		m_requestStream = gcnew NetworkStream(m_webRequestSocket, true);
 		m_requestStream->ReadTimeout = 60000;
 
 		if (m_requestMethod == "CONNECT")
@@ -95,19 +95,25 @@ void NormalProxyHandler::HandleIt()
 	catch (System::Net::Sockets::SocketException^) {}
 	finally
 	{
-		if (m_requestStream)
-		{
-			m_requestStream->Close();
-		}
-		if (webRequestSocket)
-		{
-			webRequestSocket->Close();
-		}
-		
-		if (m_traceStream)
-		{
-			m_traceStream->Close();
-		}
+		Close();
+	}
+}
+
+void NormalProxyHandler::Close()
+{
+	if (m_requestStream)
+	{
+		m_requestStream->Close();
+	}
+
+	if (m_webRequestSocket)
+	{
+		m_webRequestSocket->Close();
+	}
+
+	if (m_traceStream)
+	{
+		m_traceStream->Close();
 	}
 }
 

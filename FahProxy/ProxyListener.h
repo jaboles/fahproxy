@@ -20,6 +20,7 @@ namespace FahProxy
 		System::Net::Sockets::Socket^ m_listenSocket;
 		UploadManager^ m_uploadManager;
 		bool m_running;
+		System::Collections::ArrayList^ m_arbitratorList;
 
 		static const int MAX_LISTEN_BACKLOG = 10;
 	};
