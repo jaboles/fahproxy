@@ -33,9 +33,17 @@ namespace FahProxy
 		UploadManager(MainForm^ mainForm);
 		~UploadManager();
 		void AddToQueue(WorkUnit^ wu);
+		void ClearCompleted();
 		void Stop();
+		void SetUploadsEnabled(int mode);
+		void SetUploadsEnabledStartTime(System::TimeSpan t);
+		void SetUploadsEnabledEndTime(System::TimeSpan t);
 
 		static const int m_simultaneousUploads = 1;
+
+		static const int UPLOAD_ENABLE_MODE_ON = 1;
+		static const int UPLOAD_ENABLE_MODE_OFF = 2;
+		static const int UPLOAD_ENABLE_MODE_SCHEDULER = 3;
 
 	protected:
 		void UploadDispatchThread();
@@ -48,5 +56,8 @@ namespace FahProxy
 		System::Collections::ArrayList^ m_uploaders;
 		MainForm^ m_mainForm;
 		bool m_running;
+		int m_uploadEnableMode;
+		System::TimeSpan m_uploadsEnabledStartTime;
+		System::TimeSpan m_uploadsEnabledEndTime;
 	};
 }

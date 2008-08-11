@@ -60,6 +60,7 @@ UploadManager::UploadManager(MainForm^ mainForm)
 	m_running = true;
 	m_uploaders = gcnew ArrayList();
 	m_masterList = gcnew ArrayList();
+	m_uploadEnableMode = UPLOAD_ENABLE_MODE_ON;
 
 	String^ folder = String::Concat(System::Environment::GetEnvironmentVariable("appdata"), "\\FahProxy\\");
 	array<String^>^ fileList = Directory::GetFiles(folder, "*.wu", SearchOption::TopDirectoryOnly);
@@ -94,6 +95,8 @@ void UploadManager::AddToQueue(WorkUnit^ wu)
 	UploadQueueEntry^ qe = gcnew UploadQueueEntry(wu);
 	qe->SetStatus(UploadQueueEntry::WAITING);
 
+	Monitor::Enter(m_masterList);
+
 	m_masterList->Add(qe);
 
 	//if (m_mainForm && m_mainForm->Visible)
@@ -112,6 +115,22 @@ void UploadManager::AddToQueue(WorkUnit^ wu)
 			qe->GetStatus()
 		);
 	}
+
+	Monitor::Exit(m_masterList);
+}
+
+void UploadManager::ClearCompleted()
+{
+	Monitor::Enter(m_masterList);
+	for (int i = m_masterList->Count - 1; i >= 0; i--)
+	{
+		if (static_cast<UploadQueueEntry^>(m_masterList[i])->GetStatus() == UploadQueueEntry::UPLOAD_COMPLETED)
+		{
+			m_masterList->RemoveAt(i);
+			m_mainForm->RemoveQueueItem(i);
+		}
+	}
+	Monitor::Exit(m_masterList);
 }
 
 void UploadManager::Stop()
@@ -119,29 +138,69 @@ void UploadManager::Stop()
 	m_running = false;
 }
 
+void UploadManager::SetUploadsEnabled(int mode)
+{
+	m_uploadEnableMode = mode;
+}
+
+void UploadManager::SetUploadsEnabledStartTime(System::TimeSpan t)
+{
+	m_uploadsEnabledStartTime = t;
+}
+
+void UploadManager::SetUploadsEnabledEndTime(System::TimeSpan t)
+{
+	m_uploadsEnabledEndTime = t;
+}
+
 void UploadManager::UploadDispatchThread()
 {
 	while (m_running)
 	{
-		System::Threading::Thread::Sleep(1000);
+		System::Threading::Thread::Sleep(5000);
 
-		for (int i = 0; i < m_uploaders->Count; i++)
-		{
-			Uploader^ u = static_cast<Uploader^>(m_uploaders[i]);
-
-			if (!u->IsActive())
-			{
-				for (int j = 0; j < m_masterList->Count; j++)
-				{
-					UploadQueueEntry^ qe = static_cast<UploadQueueEntry^>(m_masterList[j]);
-
-					if
+		// If uploading is switched on, dispatch an upload.
+		if
+		(
+			m_uploadEnableMode == UPLOAD_ENABLE_MODE_ON ||
+			(
+				m_uploadEnableMode == UPLOAD_ENABLE_MODE_SCHEDULER &&
+				(
 					(
-						(qe->GetStatus() == UploadQueueEntry::WAITING || qe->GetStatus() == UploadQueueEntry::UPLOAD_FAILED) &&
-						!qe->FailedRecently(120)
+						m_uploadsEnabledStartTime < m_uploadsEnabledEndTime &&
+						DateTime::Now.TimeOfDay > m_uploadsEnabledStartTime &&
+						DateTime::Now.TimeOfDay < m_uploadsEnabledEndTime
+					) ||
+					(
+						m_uploadsEnabledStartTime > m_uploadsEnabledEndTime &&
+						(
+							DateTime::Now.TimeOfDay > m_uploadsEnabledStartTime ||
+							DateTime::Now.TimeOfDay < m_uploadsEnabledEndTime
+						)
 					)
+				)
+			)
+		)
+		{
+			for (int i = 0; i < m_uploaders->Count; i++)
+			{
+				Uploader^ u = static_cast<Uploader^>(m_uploaders[i]);
+
+				if (!u->IsActive())
+				{
+					for (int j = 0; j < m_masterList->Count; j++)
 					{
-						u->DoUpload(qe);
+						UploadQueueEntry^ qe = static_cast<UploadQueueEntry^>(m_masterList[j]);
+
+						if
+						(
+							(qe->GetStatus() == UploadQueueEntry::WAITING || qe->GetStatus() == UploadQueueEntry::UPLOAD_FAILED) &&
+							!qe->FailedRecently(120)
+						)
+						{
+							u->DoUpload(qe);
+							break;
+						}
 					}
 				}
 			}

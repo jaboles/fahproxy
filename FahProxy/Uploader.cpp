@@ -23,6 +23,8 @@ Uploader::~Uploader()
 void Uploader::DoUpload(UploadQueueEntry^ qe)
 {
 	m_currentUpload = qe;
+	m_bytesUploaded = 0;
+	m_isactive = true;
 
 	ThreadStart^ ts = gcnew ThreadStart(this, &Uploader::UploadThreadEntry);
 	(gcnew Thread(ts))->Start();
@@ -30,9 +32,6 @@ void Uploader::DoUpload(UploadQueueEntry^ qe)
 
 void Uploader::UploadThreadEntry()
 {
-	m_bytesUploaded = 0;
-	m_isactive = true;
-
 	m_currentUpload->SetStatus(UploadQueueEntry::UPLOADING);
 	ProgressChanged(this, System::EventArgs::Empty);
 

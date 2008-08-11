@@ -74,18 +74,44 @@ void MainForm::RemoveQueueItem(int index)
 	m_uploadList->Items->RemoveAt(index);
 }
 
+bool MainForm::IsUploadEnabledModeOnChecked()
+{
+	return m_uploadOnRadioButton->Checked;
+}
+
+bool MainForm::IsUploadEnabledModeOffChecked()
+{
+	return m_uploadOffRadioButton->Checked;
+}
+
+bool MainForm::IsUploadEnabledModeSchedulerChecked()
+{
+	return m_uploadScheduleRadioButton->Checked;
+}
+
+System::TimeSpan MainForm::GetUploadSchedulerStartTime()
+{
+	return m_uploadStartTime->Value.TimeOfDay;
+}
+
+System::TimeSpan MainForm::GetUploadSchedulerEndTime()
+{
+	return m_uploadEndTime->Value.TimeOfDay;
+}
+
+
 System::String^ MainForm::UploadStatusString(int index)
 {
 	switch (index)
 	{
 	case UploadQueueEntry::WAITING:
-		return "Waiting";
+		return "Queued";
 	case UploadQueueEntry::UPLOADING:
 		return "Uploading";
 	case UploadQueueEntry::UPLOAD_COMPLETED:
 		return "Upload Completed";
 	case UploadQueueEntry::UPLOAD_FAILED:
-		return "Retrying Shortly";
+		return "Failed, retrying shortly";
 	default:
 		return "Unknown";
 	}
@@ -99,4 +125,24 @@ void MainForm::SetUploadQueueText(int index, int subItemIndex, System::String^ t
 void MainForm::AddUploadQueueItem(System::Windows::Forms::ListViewItem ^item)
 {
 	m_uploadList->Items->Add(item);
+}
+
+void MainForm::UploadEnabledModeRadioButtons_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
+{
+	UploadEnabledModeChanged(sender, e);
+}
+
+void MainForm::UploadScheduleTime_ValueChanged(System::Object^ sender, System::EventArgs^ e)
+{
+	UploadScheduleTimeChanged(sender, e);
+}
+
+void MainForm::ClearCompletedButton_Click(System::Object^ sender, System::EventArgs^ e)
+{
+	ClearCompletedButtonClicked(sender, e);
+}
+
+void MainForm::OpenCacheFolderButton_Click(System::Object^ sender, System::EventArgs^ e)
+{
+	OpenCacheFolderButtonClicked(sender, e);
 }

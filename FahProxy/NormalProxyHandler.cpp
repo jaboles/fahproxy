@@ -53,6 +53,7 @@ void NormalProxyHandler::HandleIt()
 	{
 		webRequestSocket->Connect(m_host, m_port);
 		m_requestStream = gcnew NetworkStream(webRequestSocket, true);
+		m_requestStream->ReadTimeout = 60000;
 
 		if (m_requestMethod == "CONNECT")
 		{
