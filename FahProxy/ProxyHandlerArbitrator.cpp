@@ -56,7 +56,7 @@ void ProxyHandlerArbitrator::HandleIt()
 		String^ localHost = static_cast<IPEndPoint^>(m_clientSocket->RemoteEndPoint)->Address->ToString();
 		if
 		(
-			method == "POST" && contentLength > 2048 && 
+			method == "POST" && contentLength > (8 * 1024) && 
 			(
 				url->StartsWith("http://171.64.") &&
 				(url->EndsWith(":8080/") || url->EndsWith(":80/"))

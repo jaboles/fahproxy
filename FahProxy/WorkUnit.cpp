@@ -193,7 +193,19 @@ System::IO::Stream^ WorkUnit::GetTranslatedResponseStream()
 void WorkUnit::WriteReceipt(array<unsigned char,1>^ receiptBuffer)
 {
 	Stream^ f = gcnew FileStream(String::Concat(m_path, ".receipt"), FileMode::Create);
-	f->Write(receiptBuffer, 0, 512);
+	f->Write(receiptBuffer, 0, receiptBuffer->Length);
+	f->Close();
+}
+
+void WorkUnit::WriteSimulatedResponse()
+{
+	Stream^ s = GetTranslatedResponseStream();
+	array<unsigned char,1>^ buf = gcnew array<unsigned char,1>(s->Length);
+	s->Read(buf, 0, s->Length);
+	s->Close();
+
+	Stream^ f = gcnew FileStream(String::Concat(m_path, ".simulatedResponse"), FileMode::Create);
+	f->Write(buf, 0, buf->Length);
 	f->Close();
 }
 

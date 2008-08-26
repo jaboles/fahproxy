@@ -19,6 +19,7 @@ namespace FahProxy
 		System::IO::Stream^ GetDataStream();
 		System::IO::Stream^ GetTranslatedResponseStream();
 		void WriteReceipt(array<unsigned char,1>^ receiptBuffer);
+		void WriteSimulatedResponse();
 		void CleanUpFile();
 
 		static const int FAH_RESPONSE_BUFFER_SIZE = 512;

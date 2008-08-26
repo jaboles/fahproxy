@@ -115,6 +115,7 @@ void Uploader::UploadThreadEntry()
 
 			m_currentUpload->SetStatus(UploadQueueEntry::UPLOAD_COMPLETED);
 			m_currentUpload->GetWorkUnit()->WriteReceipt(receiptBuffer);
+			m_currentUpload->GetWorkUnit()->WriteSimulatedResponse();
 			UploadComplete(this, System::EventArgs::Empty);	
 		}
 		else
